@@ -80,3 +80,45 @@ let rec parse json =
   match parse' json with
     | res, [] -> res
     | _ -> failwith "Wrong JSON structure"
+
+
+let s = """
+{
+  "a": 1
+  "b": {
+    "c": [1,2,3]
+  }
+}
+"""
+
+open System.Windows.Forms
+open System.Drawing
+
+let tree = s |> explode |> tokenize |> parse
+
+let rec treeLoop (node:JSON) : TreeNode =
+  match node with
+    | JSON.Number i -> new TreeNode(i.ToString())
+    | JSON.Array list ->
+      let root = new TreeNode("[]")
+      List.map (fun v -> 
+          root.Nodes.Add(treeLoop v)
+        ) list
+      root
+    | JSON.Object list ->
+      let root = new TreeNode("{}")
+      List.map (fun (k, v) -> 
+          let r = root.Nodes.Add(k.ToString())
+          r.Nodes.Add(treeLoop v)
+        ) list
+      root
+
+let form = new Form(Height=400, Width=250, Text="JSON show", StartPosition=FormStartPosition.CenterScreen, MinimizeBox=false, ShowIcon=false)
+
+let treeView = new TreeView(Dock = DockStyle.Fill)
+treeView.Nodes.Add(treeLoop tree) |> ignore
+treeView.ExpandAll()
+form.Controls.Add(treeView)
+
+form.Show()
+Application.Run()
