@@ -15,18 +15,19 @@ type Token =
 let tokenize source =
   let rec parseString acc = function
     | '\\' :: '"' :: t -> parseString (acc + "\"") t
+    | '\\' :: 'n' :: t -> parseString (acc + "\n") t
     | '"' :: t -> acc, t
     | c :: t -> parseString (acc + c.ToString()) t
     | _ -> failwith "Malformed string."
  
   let rec token acc = function
     | (x :: _) as t when List.exists ((=)x) [')'; ':'; ','; ']'] -> acc, t
-    | w :: t when Char.IsWhiteSpace(w) -> acc, t // whitespace terminates
+    | w :: t when Char.IsWhiteSpace(w) -> acc, t
     | [] -> acc, [] // end of list terminates
-    | c :: t -> token (acc + (c.ToString())) t // otherwise accumulate chars
+    | c :: t -> token (acc + (c.ToString())) t
 
   let rec tokenize' acc = function
-    | w :: t when Char.IsWhiteSpace(w) -> tokenize' acc t   // skip whitespace
+    | w :: t when Char.IsWhiteSpace(w) -> tokenize' acc t
     | '{' :: t -> tokenize' (OpenBrace :: acc) t
     | '}' :: t -> tokenize' (CloseBrace :: acc) t
     | '[' :: t -> tokenize' (OpenBracket :: acc) t
@@ -35,14 +36,14 @@ let tokenize source =
     | ',' :: t -> tokenize' (Comma :: acc) t
     | '"' :: t -> // start of string
       let s, t' = parseString "" t
-      tokenize' (String s :: acc) t'
-    | d :: t when Char.IsDigit(d) -> // start of negative number
-      let n, t' = token (d.ToString()) t
-      tokenize' (Number (Convert.ToInt32 n)  :: acc) t'
+      tokenize' (String s :: acc) t'    
     | 'n' :: 'u' :: 'l' :: 'l' :: t -> tokenize' (Null :: acc) t
     | 't' :: 'r' :: 'u' :: 'e' :: t -> tokenize' (Boolean true :: acc) t
     | 'f' :: 'a' :: 'l' :: 's' :: 'e' :: t -> tokenize' (Boolean false :: acc) t
-    | [] -> List.rev acc // end of list terminates
+    | d :: t -> // остались числа
+      let n, t' = token (d.ToString()) t
+      tokenize' (Number (try Convert.ToInt32 n with e -> 0)  :: acc) t'
+    | [] -> List.rev acc
     | _ -> failwith "Tokinzation error"
   tokenize' [] source
 
@@ -101,15 +102,15 @@ let rec treeLoop (node:JSON) : TreeNode =
     | JSON.Number i -> new TreeNode(i.ToString())
     | JSON.Array list ->
       let root = new TreeNode("[]")
-      List.map (fun v -> 
-          root.Nodes.Add(treeLoop v)
+      List.iter (fun v -> 
+          root.Nodes.Add(treeLoop v) |> ignore
         ) list
       root
     | JSON.Object list ->
       let root = new TreeNode("{}")
-      List.map (fun (k, v) -> 
+      List.iter (fun (k, v) -> 
           let r = root.Nodes.Add(k.ToString())
-          r.Nodes.Add(treeLoop v)
+          r.Nodes.Add(treeLoop v) |> ignore
         ) list
       root
 
