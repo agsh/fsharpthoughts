@@ -106,6 +106,9 @@ fst (1,2,3) // ?
 let (a,b,c) = (1,2,3) //(сопоставление с образцом, 3с. ниже)
 b
 [("Гарри Поттер", 13, 2.5),("Колобок", 1, 55.5)]
+sum для списка?
+max для списка?
+length для списка?
 (* Опишите функцию, которая для данного числа n
 создает список из всех попарных сумм чисел от
 1 до n. ( Т.е. [1+1, 1+2, 1+3, ..., 1+n, 2+1, 2+2, ...,
@@ -121,7 +124,7 @@ sayWhat 5
 let sayWhat i = 
   match i with
       | 1 -> "место встречи изменить нельзя"
-      | 2 -> "суббота вечер"
+      | 2 -> "суббота утро"
       | 3 -> "я ничего не знаю"
       | 4 -> "ненавижу FP, заберите меня отсюда"
       | _ -> "кто здесь?"
@@ -129,7 +132,7 @@ let sayWhat i =
   match i with
       | 1 -> "место встречи изменить нельзя"
       | _ -> "кто здесь?"
-      | 2 -> "суббота вечер"
+      | 2 -> "суббота утро"
       | 3 -> "я ничего не знаю"
       | 4 -> "ненавижу FP, заберите меня отсюда"
 sayWhat 4  
@@ -166,28 +169,27 @@ let bmiTell weight height =
     | a when a <= normal -> "You're supposedly normal. Pffft, I bet you're ugly"
     | a when a <= fat -> "You're fat! Lose some weight, fatty!"
     | _ -> "You're a whale, congratulations!"
-(*
+    
 1) Целочисленный остаток от деления: rem'
 2) Значение целочисленного деления: quot'
-let sign a
-| a > 0 = 1
-| a == 0 = 0
-| otherwise = -1
+let sign = function
+  | a when a > 0 -> 1
+  | a when a = 0 -> 0
+  | _ -> -1
 Наибольший общий делитель: gcd
-sign' a
-| a > 0 = 1
-| a < 0 = (-1)
-| a == 0 = 0
-rem' a b =
-let rem'' a b
-| a < b = a
-| otherwise = rem'' (a-b) b
-in
-sign' a * sign' b * rem'' (abs a) (abs b)
-quot' a b
-| a < b = 0
-| otherwise = 1 + quot' (a-b) b
-*)
+let rem a b =
+  let rec rem' a b = match (a-b) with
+  c when c < 0 -> a
+  | _ -> rem' (a-b) b
+  in
+    sign a * sign b * rem' (abs a) (abs b)
+    
+let rec gcd a b = 
+  match (a,b) with
+    | (a,b) when a=b -> a
+    | (a,b) when a > b -> gcd (a-b) b
+    | (a,b) when b > a -> gcd a (b-a) 
+
 (*
 replicate' :: (Num i, Ord i) => i -> a -> [a]
 take' :: (Num i, Ord i) => i -> [a] -> [a]
