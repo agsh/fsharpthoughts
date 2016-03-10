@@ -107,28 +107,3 @@ seq8 |> Seq.iter (printf "%i ")
 let fibb = Seq.unfold (fun state -> Some(fst state + snd state, (snd state, fst state + snd state))) (0,1)
 Seq.take 20 fibb
 
-
-type 'a BTree =
-  Nil
-  | Node of 'a * 'a BTree * 'a BTree
-  
-let tr = Node (5, Node (3, Nil, Node (4, Nil, Nil)), Node (9, Node (7, Nil, Nil), Node (11, Nil, Nil)) ) 
-open System.Windows.Forms
-
-let rec loop3 (node: int BTree) : TreeNode =
-  match node with
-    Node (v, l, r) ->
-      let tlnode = new TreeNode(v.ToString())
-      tlnode.Nodes.Add(loop3 l) |> ignore
-      tlnode.Nodes.Add(loop3 r) |> ignore
-      tlnode
-    | Nil -> new TreeNode("Nil")
-
-let form = new Form( Height = 400, Width = 250, Text = "Show binary tree", StartPosition = FormStartPosition.CenterScreen, MinimizeBox = false, ShowIcon = false )
-
-let treeView = new TreeView(Dock = DockStyle.Fill)
-treeView.Nodes.Add(loop3 tr) |> ignore
-treeView.ExpandAll()
-form.Controls.Add(treeView)
-
-form.Show()
