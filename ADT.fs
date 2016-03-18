@@ -49,7 +49,7 @@ List.map who anniversaries
 *)
 
 type Point = { x  : float; y : float }
-              
+
 let a = { x = 13.22 ; y = 8.99 }
 let b = { a with y = 666.13 }
 let absPoint a = sqrt (a.x*a.x + a.y*a.y)
@@ -58,8 +58,8 @@ Some 1
 None
 Some "str" // type?
 Some 42
-Some 42 : [Nothing]  // ?
-Just 42 : [Just "str", Nothing] // ?
+Some 42 :: [None]  // ?
+Some 42 :: [Some "str", None] // ?
 
 type Option<'a> =
   Some of 'a
@@ -71,9 +71,10 @@ type 'a List =  // haskell!!!
 
 let l1 = Cons (3, (Cons (4, (Cons (5, Nil)))))
 
-let rec apply x y = match x with
-  Nil -> y
-  | Cons (head, tail) -> Cons (head, apply tail y)
+let rec apply x y = 
+  match x with
+    | Nil -> y
+    | Cons (head, tail) -> Cons (head, apply tail y)
 
 apply l1 (Cons (1, Nil))
 
@@ -110,20 +111,28 @@ let treesort x = x |> list2tree |> tree2list
 
 treesort [12; 1; 6; 4; 90; 9]
 
-list2tree [12, 12, 12, 13, 13, 14]
+list2tree [12; 12; 12; 13; 13; 14]
 Как будет выглядеть дерево?
 
-data Tree a = EmptyTree | Node a Int (Tree a) (Tree a) deriving (Show, Read, Eq)
-singleton :: a -> Tree a
-singleton x = Node x 1 EmptyTree EmptyTree
-treeInsert :: (Ord a) => a -> Tree a -> Tree a 
-treeInsert x EmptyTree = singleton x
-treeInsert x (Node a i left right) 
- | x == a = Node x (i+1) left right 
- | x < a = Node a i (treeInsert x left) right 
- | x > a = Node a i left (treeInsert x right)
-list2tree :: (Ord a) => [a] -> Tree a
-list2tree = l2t EmptyTree
- where
- l2t acc [] = acc
- l2t acc (head:tail) = l2t (treeInsert head acc) tail
+
+type 'a Tree =
+  EmptyTree
+  | Node of 'a * int * 'a Tree * 'a Tree
+
+
+
+let singleton x = Node (x, 1, EmptyTree, EmptyTree)
+
+let rec treeInsert x = function
+ | EmptyTree -> singleton x
+ | Node (a, i, left, right) when x = a -> Node (x, (i+1), left, right)
+ | Node (a, i, left, right) when x < a -> Node (a, i, (treeInsert x left), right)
+ | Node (a, i, left, right) when x > a -> Node (a, i, left, (treeInsert x right))
+
+let list2tree x = 
+  let rec l2t acc = function
+    | [] -> acc
+    | (head::tail) -> l2t (treeInsert head acc) tail
+  l2t EmptyTree x
+
+// tree2list - сами
